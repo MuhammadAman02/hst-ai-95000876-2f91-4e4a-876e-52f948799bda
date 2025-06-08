@@ -1,56 +1,69 @@
 import React, { useState } from 'react';
-import { Calculator, Heart, Target } from 'lucide-react';
+import { Calculator, Heart } from 'lucide-react';
 import MacroTargets from '@/components/MacroTargets';
-import FoodSearch from '@/components/FoodSearch';
-import MealBuilder from '@/components/MealBuilder';
-import MealSuggestions from '@/components/MealSuggestions';
-import { Food, calculateNutrition } from '@/utils/foodDatabase';
+import MealGenerator from '@/components/MealGenerator';
+import MealPlan from '@/components/MealPlan';
 
-interface MealItem {
-  food: Food;
-  amount: number;
-  nutrition: Food['nutrition'];
+export interface MacroTargets {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
+export interface Meal {
+  id: string;
+  name: string;
+  type: 'breakfast' | 'lunch' | 'dinner';
+  foods: Array<{
+    name: string;
+    amount: number;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+  }>;
+  totalNutrition: {
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+  };
 }
 
 const Index = () => {
   console.log('Index page rendered');
 
-  const [targets, setTargets] = useState({
+  const [targets, setTargets] = useState<MacroTargets>({
     calories: 2000,
     protein: 100,
     carbs: 150,
     fat: 70
   });
 
-  const [mealItems, setMealItems] = useState<MealItem[]>([]);
+  const [selectedMeals, setSelectedMeals] = useState<Meal[]>([]);
 
-  const handleAddFood = (food: Food, amount: number) => {
-    console.log('Adding food to meal:', food.name, amount);
-    const nutrition = calculateNutrition(food, amount);
-    const newItem: MealItem = {
-      food,
-      amount,
-      nutrition
-    };
-    setMealItems(prev => [...prev, newItem]);
+  const handleAddMeal = (meal: Meal) => {
+    console.log('Adding meal to plan:', meal);
+    setSelectedMeals(prev => [...prev, meal]);
   };
 
-  const handleRemoveItem = (index: number) => {
-    console.log('Removing item at index:', index);
-    setMealItems(prev => prev.filter((_, i) => i !== index));
+  const handleRemoveMeal = (mealId: string) => {
+    console.log('Removing meal from plan:', mealId);
+    setSelectedMeals(prev => prev.filter(meal => meal.id !== mealId));
   };
 
-  const handleClearMeal = () => {
-    console.log('Clearing all meal items');
-    setMealItems([]);
+  const handleClearPlan = () => {
+    console.log('Clearing meal plan');
+    setSelectedMeals([]);
   };
 
-  const currentNutrition = mealItems.reduce(
-    (total, item) => ({
-      calories: total.calories + item.nutrition.calories,
-      protein: total.protein + item.nutrition.protein,
-      carbs: total.carbs + item.nutrition.carbs,
-      fat: total.fat + item.nutrition.fat
+  const currentNutrition = selectedMeals.reduce(
+    (total, meal) => ({
+      calories: total.calories + meal.totalNutrition.calories,
+      protein: total.protein + meal.totalNutrition.protein,
+      carbs: total.carbs + meal.totalNutrition.carbs,
+      fat: total.fat + meal.totalNutrition.fat
     }),
     { calories: 0, protein: 0, carbs: 0, fat: 0 }
   );
@@ -67,11 +80,11 @@ const Index = () => {
             <h1 className="text-4xl font-bold text-health-800">NutriPlan</h1>
           </div>
           <p className="text-xl text-health-600 mb-2">
-            Transform your dietitian's macro targets into delicious meals
+            Transform your macro targets into complete meal plans
           </p>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Enter your daily nutrition targets and let us suggest the perfect foods to meet your goals. 
-            Build balanced meals with precise macro tracking.
+            Set your daily nutrition targets and generate balanced breakfast, lunch, and dinner suggestions 
+            that perfectly match your goals.
           </p>
         </div>
 
@@ -84,22 +97,20 @@ const Index = () => {
               onTargetsChange={setTargets} 
             />
             
-            <FoodSearch onAddFood={handleAddFood} />
-            
-            <MealSuggestions 
+            <MealGenerator 
               targets={targets}
-              currentNutrition={currentNutrition}
-              onAddFood={handleAddFood}
+              onAddMeal={handleAddMeal}
             />
           </div>
 
           {/* Right Column */}
           <div className="space-y-6">
-            <MealBuilder
-              mealItems={mealItems}
+            <MealPlan
+              selectedMeals={selectedMeals}
               targets={targets}
-              onRemoveItem={handleRemoveItem}
-              onClearMeal={handleClearMeal}
+              currentNutrition={currentNutrition}
+              onRemoveMeal={handleRemoveMeal}
+              onClearPlan={handleClearPlan}
             />
           </div>
         </div>
