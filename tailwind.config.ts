@@ -75,10 +75,10 @@ export default {
 					900: '#14532d'
 				},
 				nutrition: {
+					calories: '#f59e0b',
 					protein: '#ef4444',
-					carbs: '#f59e0b',
-					fat: '#8b5cf6',
-					calories: '#06b6d4'
+					carbs: '#3b82f6',
+					fat: '#8b5cf6'
 				}
 			},
 			borderRadius: {
