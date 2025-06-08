@@ -29,6 +29,25 @@ export interface Meal {
     carbs: number;
     fat: number;
   };
+  recipe: {
+    description: string;
+    prepTime: number;
+    cookTime: number;
+    servings: number;
+    difficulty: 'Easy' | 'Medium' | 'Hard';
+    ingredients: Array<{
+      item: string;
+      amount: string;
+      notes?: string;
+    }>;
+    instructions: Array<{
+      step: number;
+      instruction: string;
+      time?: string;
+    }>;
+    tips?: string[];
+    nutrition_notes?: string;
+  };
 }
 
 const Index = () => {
