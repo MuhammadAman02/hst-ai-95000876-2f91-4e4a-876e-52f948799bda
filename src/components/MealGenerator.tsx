@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Wand2, Plus, Coffee, Sun, Moon, BookOpen } from 'lucide-react';
+import { Wand2, Plus, Coffee, Sun, Moon, BookOpen, ArrowLeft, Sparkles, Clock, Users, ChefHat } from 'lucide-react';
 import { MacroTargets, Meal } from '@/pages/Index';
 import RecipeModal from './RecipeModal';
 
 interface MealGeneratorProps {
   targets: MacroTargets;
   onAddMeal: (meal: Meal) => void;
+  onBackToTargets: () => void;
 }
 
-const MealGenerator: React.FC<MealGeneratorProps> = ({ targets, onAddMeal }) => {
+const MealGenerator: React.FC<MealGeneratorProps> = ({ targets, onAddMeal, onBackToTargets }) => {
   const [generatedMeals, setGeneratedMeals] = useState<{
     breakfast: Meal[];
     lunch: Meal[];
@@ -23,6 +24,11 @@ const MealGenerator: React.FC<MealGeneratorProps> = ({ targets, onAddMeal }) => 
 
   console.log('MealGenerator component rendered with targets:', targets);
 
+  React.useEffect(() => {
+    // Auto-generate meals when component mounts
+    generateMeals();
+  }, []);
+
   const generateMeals = () => {
     console.log('Generating meals for targets:', targets);
     setIsGenerating(true);
@@ -33,9 +39,10 @@ const MealGenerator: React.FC<MealGeneratorProps> = ({ targets, onAddMeal }) => 
       setGeneratedMeals(meals);
       setIsGenerating(false);
       console.log('Generated meals:', meals);
-    }, 1500);
+    }, 2000);
   };
 
+  // ... keep existing code (createMealSuggestions and meal generation functions)
   const createMealSuggestions = (targets: MacroTargets) => {
     // Distribute macros across meals (rough percentages)
     const breakfastRatio = 0.25;
@@ -486,10 +493,19 @@ const MealGenerator: React.FC<MealGeneratorProps> = ({ targets, onAddMeal }) => 
 
   const getMealIcon = (type: string) => {
     switch (type) {
-      case 'breakfast': return <Coffee className="h-4 w-4" />;
-      case 'lunch': return <Sun className="h-4 w-4" />;
-      case 'dinner': return <Moon className="h-4 w-4" />;
+      case 'breakfast': return <Coffee className="h-5 w-5" />;
+      case 'lunch': return <Sun className="h-5 w-5" />;
+      case 'dinner': return <Moon className="h-5 w-5" />;
       default: return null;
+    }
+  };
+
+  const getMealGradient = (type: string) => {
+    switch (type) {
+      case 'breakfast': return 'from-orange-400 to-amber-500';
+      case 'lunch': return 'from-emerald-400 to-teal-500';
+      case 'dinner': return 'from-violet-400 to-purple-500';
+      default: return 'from-slate-400 to-slate-500';
     }
   };
 
@@ -499,72 +515,147 @@ const MealGenerator: React.FC<MealGeneratorProps> = ({ targets, onAddMeal }) => 
     setIsRecipeModalOpen(true);
   };
 
+  if (isGenerating) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <Card className="bg-white/80 backdrop-blur-sm border-white/20 shadow-xl">
+          <CardContent className="p-12">
+            <div className="text-center">
+              <div className="relative mb-8">
+                <div className="w-20 h-20 mx-auto bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center animate-pulse-glow">
+                  <Sparkles className="h-10 w-10 text-white animate-pulse" />
+                </div>
+                <div className="absolute inset-0 w-20 h-20 mx-auto border-4 border-emerald-200 rounded-full animate-spin"></div>
+              </div>
+              
+              <h3 className="text-2xl font-bold text-slate-800 mb-4">
+                Creating Your Perfect Meal Plan
+              </h3>
+              <p className="text-slate-600 mb-6 max-w-md mx-auto">
+                Our AI is analyzing your targets and generating personalized meal suggestions with detailed recipes...
+              </p>
+              
+              <div className="space-y-3 max-w-sm mx-auto">
+                <div className="flex items-center gap-3 text-sm text-slate-600">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                  <span>Calculating macro distribution</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-slate-600">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+                  <span>Selecting optimal ingredients</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm text-slate-600">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
+                  <span>Generating detailed recipes</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <>
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-health-700">
-            <Wand2 className="h-5 w-5" />
-            Generate Meal Suggestions
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {!generatedMeals ? (
-            <div className="text-center py-8">
-              <Wand2 className="h-12 w-12 mx-auto mb-4 text-health-500" />
-              <p className="text-muted-foreground mb-4">
-                Ready to create your personalized meal plan?
-              </p>
-              <Button 
-                onClick={generateMeals}
-                disabled={isGenerating}
-                className="bg-health-600 hover:bg-health-700"
-              >
-                {isGenerating ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Generating Meals...
-                  </>
-                ) : (
-                  <>
-                    <Wand2 className="h-4 w-4 mr-2" />
-                    Generate Meal Plan
-                  </>
-                )}
-              </Button>
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="text-center">
+          <Button
+            variant="outline"
+            onClick={onBackToTargets}
+            className="mb-6 bg-white/60 hover:bg-white/80 border-slate-200"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Targets
+          </Button>
+          
+          <div className="inline-flex items-center gap-3 mb-4 p-3 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg border border-white/20">
+            <div className="p-2 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg">
+              <Wand2 className="h-5 w-5 text-white" />
             </div>
-          ) : (
-            <div className="space-y-6">
-              {Object.entries(generatedMeals).map(([mealType, meals]) => (
-                <div key={mealType}>
-                  <h4 className="font-medium mb-3 flex items-center gap-2 capitalize">
+            <h3 className="text-xl font-bold text-slate-800">Your Personalized Meal Options</h3>
+          </div>
+          <p className="text-slate-600">Choose meals that fit your targets and taste preferences</p>
+        </div>
+
+        {/* Meal Options */}
+        {generatedMeals && (
+          <div className="space-y-8">
+            {Object.entries(generatedMeals).map(([mealType, meals]) => (
+              <div key={mealType} className="animate-fade-in">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className={`p-3 bg-gradient-to-br ${getMealGradient(mealType)} rounded-xl text-white shadow-lg`}>
                     {getMealIcon(mealType)}
-                    {mealType} Options
-                  </h4>
-                  <div className="space-y-3">
-                    {meals.map((meal) => (
-                      <div key={meal.id} className="border rounded-lg p-4 hover:border-health-300 transition-colors">
-                        <div className="flex justify-between items-start mb-3">
-                          <div>
-                            <h5 className="font-medium">{meal.name}</h5>
-                            <div className="flex gap-2 mt-1">
-                              <Badge variant="outline" className="capitalize">
-                                {meal.type}
-                              </Badge>
-                              <Badge variant="outline" className={
-                                meal.recipe.difficulty === 'Easy' ? 'bg-green-50 text-green-700' :
-                                meal.recipe.difficulty === 'Medium' ? 'bg-yellow-50 text-yellow-700' :
-                                'bg-red-50 text-red-700'
-                              }>
-                                {meal.recipe.difficulty}
-                              </Badge>
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-bold text-slate-800 capitalize">{mealType} Options</h4>
+                    <p className="text-sm text-slate-600">Choose your perfect {mealType}</p>
+                  </div>
+                </div>
+                
+                <div className="grid md:grid-cols-3 gap-6">
+                  {meals.map((meal) => (
+                    <Card key={meal.id} className="group bg-white/80 backdrop-blur-sm border-white/20 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 overflow-hidden">
+                      <CardContent className="p-0">
+                        {/* Meal Header */}
+                        <div className={`p-4 bg-gradient-to-br ${getMealGradient(meal.type)} text-white`}>
+                          <h5 className="font-bold text-lg mb-1">{meal.name}</h5>
+                          <div className="flex items-center gap-2 text-sm opacity-90">
+                            <Clock className="h-3 w-3" />
+                            <span>{meal.recipe.prepTime + meal.recipe.cookTime} min</span>
+                            <span>•</span>
+                            <Users className="h-3 w-3" />
+                            <span>{meal.recipe.servings} serving</span>
+                          </div>
+                        </div>
+
+                        {/* Meal Content */}
+                        <div className="p-4 space-y-4">
+                          {/* Difficulty & Time */}
+                          <div className="flex items-center justify-between">
+                            <Badge variant="outline" className={
+                              meal.recipe.difficulty === 'Easy' ? 'bg-green-50 text-green-700 border-green-200' :
+                              meal.recipe.difficulty === 'Medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                              'bg-red-50 text-red-700 border-red-200'
+                            }>
+                              <ChefHat className="h-3 w-3 mr-1" />
+                              {meal.recipe.difficulty}
+                            </Badge>
+                          </div>
+
+                          {/* Nutrition Grid */}
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="bg-slate-50 rounded-lg p-2 text-center">
+                              <div className="text-lg font-bold text-slate-800">{Math.round(meal.totalNutrition.calories)}</div>
+                              <div className="text-xs text-slate-600">calories</div>
+                            </div>
+                            <div className="bg-blue-50 rounded-lg p-2 text-center">
+                              <div className="text-lg font-bold text-blue-700">{Math.round(meal.totalNutrition.protein * 10) / 10}g</div>
+                              <div className="text-xs text-blue-600">protein</div>
+                            </div>
+                            <div className="bg-orange-50 rounded-lg p-2 text-center">
+                              <div className="text-lg font-bold text-orange-700">{Math.round(meal.totalNutrition.carbs * 10) / 10}g</div>
+                              <div className="text-xs text-orange-600">carbs</div>
+                            </div>
+                            <div className="bg-purple-50 rounded-lg p-2 text-center">
+                              <div className="text-lg font-bold text-purple-700">{Math.round(meal.totalNutrition.fat * 10) / 10}g</div>
+                              <div className="text-xs text-purple-600">fat</div>
                             </div>
                           </div>
-                          <div className="flex gap-2">
+
+                          {/* Description */}
+                          <p className="text-sm text-slate-600 line-clamp-2">
+                            {meal.recipe.description}
+                          </p>
+
+                          {/* Action Buttons */}
+                          <div className="flex gap-2 pt-2">
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => handleViewRecipe(meal)}
+                              className="flex-1 bg-white/60 hover:bg-white/80"
                             >
                               <BookOpen className="h-3 w-3 mr-1" />
                               Recipe
@@ -572,48 +663,35 @@ const MealGenerator: React.FC<MealGeneratorProps> = ({ targets, onAddMeal }) => 
                             <Button
                               size="sm"
                               onClick={() => onAddMeal(meal)}
-                              className="bg-health-600 hover:bg-health-700"
+                              className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg"
                             >
                               <Plus className="h-3 w-3 mr-1" />
                               Add to Plan
                             </Button>
                           </div>
                         </div>
-                        
-                        <div className="space-y-2">
-                          <div className="grid grid-cols-4 gap-2 text-sm font-medium">
-                            <span>{meal.totalNutrition.calories} cal</span>
-                            <span>{meal.totalNutrition.protein}g protein</span>
-                            <span>{meal.totalNutrition.carbs}g carbs</span>
-                            <span>{meal.totalNutrition.fat}g fat</span>
-                          </div>
-                          
-                          <div className="text-xs text-muted-foreground">
-                            <strong>Prep:</strong> {meal.recipe.prepTime}min • <strong>Cook:</strong> {meal.recipe.cookTime}min • <strong>Serves:</strong> {meal.recipe.servings}
-                          </div>
-                          
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {meal.recipe.description}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-              ))}
-              
-              <Button 
-                variant="outline" 
-                onClick={generateMeals}
-                className="w-full"
-              >
-                <Wand2 className="h-4 w-4 mr-2" />
-                Generate New Options
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Generate New Options */}
+        <div className="text-center pt-8">
+          <Button
+            onClick={generateMeals}
+            variant="outline"
+            size="lg"
+            className="bg-white/60 hover:bg-white/80 border-slate-200"
+          >
+            <Wand2 className="h-4 w-4 mr-2" />
+            Generate New Options
+          </Button>
+        </div>
+      </div>
 
       <RecipeModal
         meal={selectedRecipe}
